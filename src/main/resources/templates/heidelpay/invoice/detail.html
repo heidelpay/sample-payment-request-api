@@ -1,0 +1,162 @@
+<html lang="DE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet"
+	href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+	integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+	crossorigin="anonymous">
+<title>Rechnungskauf by heidelpay</title>
+
+<style>
+html {
+	font-size: 12px;
+	font-weight: 100;
+}
+
+body {
+	margin: 8px;
+	margin-top: 18px;
+}
+
+
+.btn-primary {
+	background-color:#05164d !important;
+	border-color:#05164d !important;
+}
+
+.btn-row {
+	padding: 8px;
+	margin-top:8px;
+}
+
+.hr-spacer {
+		margin-top:24px;
+	
+}
+.btn-row .btn {
+	margin-right: 8px;
+}
+
+.btn-outline.secondary {
+    border-color: #05164d;
+	color: #05164d;
+}
+
+.btn-outline-secondary:not(:disabled):not(.disabled).active {
+	color: #fff;
+    background-color: #05164d;
+    border-color: #05164d;
+}
+
+</style>
+
+</head>
+<body>
+	<div class="container">
+
+		<h6>Ihr Einkauf</h6>
+		<div class="row">
+			<p class="col-8">Summe:</p>
+			<p class="col-4 float-right" id="total-container">-</p>
+		</div>
+
+		<div class="row"></div>
+		<h6>Erweiterte Angaben</h6>
+		<div class="row">
+			<p class="col-12">Um eine gültige Rechnung erstellen zu können,
+				müssen die folgenden Angaben ergänzt werden:</p>
+		</div>
+
+		<div class="row">
+			<p class="col-4">Anrede</p>
+
+			<div class="form-group col-8 btn-group btn-group-toggle" data-toggle="buttons">
+				<label class="btn btn-outline-secondary active"> <input type="radio"
+					name="salutationOptions" id="any" value="unknown" autocomplete="off" checked>
+					Keine Angabe
+				</label> <label class="btn btn-outline-secondary"> <input type="radio"
+					name="salutationOptions" id="female" value="mrs" autocomplete="off"> Frau
+				</label> <label class="btn btn-outline-secondary"> <input type="radio"
+					name="salutationOptions" id="male" value="mr" autocomplete="off"> Mann
+				</label>
+			</div>
+		</div>
+
+		<div class="row">
+			<p class="col-4">Geburtsdatum</p>
+			<div class="form-group col-8">
+				<input type="date" id="bday" class="form-control"></input> <small
+					id="dateHelp" class="form-text text-muted">Das Mindestalter
+					bei versichertem Rechnungskauf ist 18 Jahre.</small>
+			</div>
+		</div>
+
+		<hr class="hr-spacer"/>
+		
+		<div class="row btn-row float-right">
+
+			<button type="button" class="btn btn-outline-secondary"
+				id="callCancel" onclick="doCancel()">Abbrechen</button>
+
+			<button type="button" class="btn btn-primary" id="callPay"
+				onclick="doPay()">Bezahlen</button>
+
+		</div>
+
+</div>
+
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+
+	<script type="text/javascript">
+		let client; 
+		navigator.serviceWorker.addEventListener('message', e => {
+			  	client = e.source;
+			  	var value = parseFloat(e.data.value).toFixed(2);
+				document.getElementById("total-container").innerHTML = value + " " + e.data.currency;	
+			});
+		
+		navigator.serviceWorker.controller.postMessage('payment_app_window_ready');
+		
+  		function doPay() {  			
+  			var bday = document.getElementById("bday").value;
+  			var salutation = getSalutation();
+  			if(client) {
+  				var completed = (bday != null && salutation != null);
+  				var data = {
+  					"completed":completed,
+  					"birthdate":bday,
+  					"salutation":getSalutation()
+  				}
+  				client.postMessage(data);
+  			}
+  		}
+
+  		function getSalutation() {
+  		    var radios = document.getElementsByName("salutationOptions");
+  		    for (var i=0, len=radios.length; i<len; i++) {
+  		        if ( radios[i].checked ) { 
+  		        	return radios[i].value;
+  		        }
+  		    }
+  		}
+  		
+  		function doCancel() {
+  			if(client) {
+  				var data = {
+  						"completed":false,
+  						"message":"User cancelled."
+  				}
+  				client.postMessage(data);
+  			} else {
+  				console.log("No Client");
+  			}
+  		}
+  			
+  		
+  	</script>
+
+</body>
+</html>
